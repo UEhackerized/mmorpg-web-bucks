@@ -1,0 +1,5 @@
+{
+  "name": "Metin2 Web Legacy",
+  "description": "A browser-based 3D MMORPG clone inspired by Metin2. Features classic WASD movement, combat mechanics, and AI-powered NPCs using Google Gemini.",
+  "requestFramePermissions": []
+}
