@@ -1,11 +1,10 @@
 
 import React, { useRef, useState, useEffect, Suspense } from 'react';
-import { useFrame, useThree, useLoader } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import { Vector3, Group } from 'three';
 import { useGameStore } from '../store';
-import { Capsule, Html, OrbitControls, Trail, CameraShake, Sparkles } from '@react-three/drei';
+import { Html, OrbitControls, Trail, CameraShake, Sparkles, Cylinder } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
-import { OBJLoader, MTLLoader } from 'three-stdlib';
 import * as THREE from 'three';
 import { COMBO_PROFILES, checkSectorHit } from '../combatLogic';
 import { inputSystem } from '../logic/inputSystem';
@@ -14,63 +13,108 @@ import { CharacterClass } from '../types';
 const CLASS_COLORS: Record<CharacterClass, string> = {
     'warrior': '#4a90e2', // Blue
     'ninja': '#e91e63',   // Pink/Red
-    'sura': '#ffffff',    // White
+    'sura': '#b0bec5',    // Light Grey
     'shaman': '#9c27b0'   // Purple
 };
 
-// Simple Error Boundary to catch loader failures (404s)
-class ModelErrorBoundary extends React.Component<{ fallback: React.ReactNode, children: React.ReactNode }, { hasError: boolean }> {
-    constructor(props: { fallback: React.ReactNode, children: React.ReactNode }) {
-        super(props);
-        this.state = { hasError: false };
-    }
-    static getDerivedStateFromError(error: any) {
-        return { hasError: true };
-    }
-    componentDidCatch(error: any) {
-        console.warn("Failed to load 3D model, reverting to fallback. Ensure /characters/warrior/warrior.obj exists.", error);
-    }
-    render() {
-        if (this.state.hasError) {
-            return this.props.fallback;
-        }
-        return this.props.children;
-    }
-}
+// Procedural Human Body Component
+export const HumanoidBody: React.FC<{ color: string, isMoving: boolean, isAttacking: boolean }> = ({ color, isMoving, isAttacking }) => {
+    const bodyRef = useRef<Group>(null);
+    const leftArmRef = useRef<THREE.Mesh>(null);
+    const rightArmRef = useRef<THREE.Mesh>(null);
+    const leftLegRef = useRef<THREE.Mesh>(null);
+    const rightLegRef = useRef<THREE.Mesh>(null);
 
-// --- CUSTOM MODEL LOADER ---
-const WarriorModel3D: React.FC<{ isMoving: boolean, isAttacking: boolean }> = ({ isMoving, isAttacking }) => {
-    // Try to load OBJ and MTL.
-    // Ensure files are at /public/characters/warrior/warrior.obj and .mtl
-    const materials = useLoader(MTLLoader, '/characters/warrior/warrior.mtl');
-    const obj = useLoader(OBJLoader, '/characters/warrior/warrior.obj', (loader) => {
-        materials.preload();
-        (loader as any).setMaterials(materials);
-    });
-
-    const ref = useRef<Group>(null);
-
-    // Simple animation simulation by rocking the model
     useFrame((state) => {
-        if (!ref.current) return;
+        if (!bodyRef.current) return;
+        const t = state.clock.elapsedTime;
+
+        // Breathing
+        bodyRef.current.scale.y = 1 + Math.sin(t * 2) * 0.01;
+
         if (isMoving) {
-            ref.current.rotation.z = Math.sin(state.clock.elapsedTime * 10) * 0.05;
-            ref.current.position.y = -0.9 + Math.abs(Math.sin(state.clock.elapsedTime * 10)) * 0.05;
+            // Running Animation
+            const speed = 15;
+            if(leftLegRef.current) leftLegRef.current.rotation.x = Math.sin(t * speed) * 0.8;
+            if(rightLegRef.current) rightLegRef.current.rotation.x = Math.sin(t * speed + Math.PI) * 0.8;
+            
+            if (!isAttacking) {
+                if(leftArmRef.current) leftArmRef.current.rotation.x = Math.sin(t * speed + Math.PI) * 0.8;
+                if(rightArmRef.current) rightArmRef.current.rotation.x = Math.sin(t * speed) * 0.8;
+            }
         } else {
-            ref.current.rotation.z = 0;
-            ref.current.position.y = -0.9;
+            // Idle
+            if(leftLegRef.current) leftLegRef.current.rotation.x = THREE.MathUtils.lerp(leftLegRef.current.rotation.x, 0, 0.1);
+            if(rightLegRef.current) rightLegRef.current.rotation.x = THREE.MathUtils.lerp(rightLegRef.current.rotation.x, 0, 0.1);
+            
+            if (!isAttacking) {
+                if(leftArmRef.current) leftArmRef.current.rotation.x = THREE.MathUtils.lerp(leftArmRef.current.rotation.x, 0, 0.1);
+                if(rightArmRef.current) rightArmRef.current.rotation.x = THREE.MathUtils.lerp(rightArmRef.current.rotation.x, 0, 0.1);
+                if(rightArmRef.current) rightArmRef.current.rotation.z = Math.PI / 12; // Relaxed arms
+                if(leftArmRef.current) leftArmRef.current.rotation.z = -Math.PI / 12;
+            }
         }
 
         if (isAttacking) {
-            ref.current.rotation.y = Math.PI + Math.sin(state.clock.elapsedTime * 20) * 0.5;
-        } else {
-             ref.current.rotation.y = Math.PI; // Face forward (OBJ usually faces +Z, we rotate 180 if needed)
+             // Attack override for arms
+             if(rightArmRef.current) {
+                 rightArmRef.current.rotation.x = -Math.PI / 2; // Raised for swing
+                 rightArmRef.current.rotation.z = 0;
+             }
+             if(leftArmRef.current) {
+                 leftArmRef.current.rotation.x = 0.5; // Balance
+                 leftArmRef.current.rotation.z = -0.5;
+             }
         }
     });
 
-    // Scale needs adjustment depending on the export. Starting with 0.01 as many OBJs are huge.
-    // Adjust 'scale={0.01}' if the model is too big/small.
-    return <primitive ref={ref} object={obj} scale={0.02} position={[0, -0.9, 0]} rotation={[0, Math.PI, 0]} />;
+    return (
+        <group ref={bodyRef}>
+            {/* Torso */}
+            <mesh position={[0, 0.75, 0]} castShadow>
+                <boxGeometry args={[0.4, 0.7, 0.25]} />
+                <meshStandardMaterial color={color} />
+            </mesh>
+
+            {/* Head */}
+            <mesh position={[0, 1.3, 0]} castShadow>
+                <sphereGeometry args={[0.2, 16, 16]} />
+                <meshStandardMaterial color="#ffccaa" />{/* Skin Tone */}
+            </mesh>
+            
+            {/* Right Arm (Pivot at Shoulder) */}
+            <group position={[0.3, 1.0, 0]}>
+                <mesh ref={rightArmRef} position={[0, -0.3, 0]} castShadow>
+                    <boxGeometry args={[0.15, 0.7, 0.15]} />
+                    <meshStandardMaterial color={color} />
+                </mesh>
+            </group>
+
+            {/* Left Arm */}
+            <group position={[-0.3, 1.0, 0]}>
+                 <mesh ref={leftArmRef} position={[0, -0.3, 0]} castShadow>
+                    <boxGeometry args={[0.15, 0.7, 0.15]} />
+                    <meshStandardMaterial color={color} />
+                </mesh>
+            </group>
+
+            {/* Right Leg (Pivot at Hip) */}
+            <group position={[0.12, 0.4, 0]}>
+                <mesh ref={rightLegRef} position={[0, -0.4, 0]} castShadow>
+                    <boxGeometry args={[0.16, 0.8, 0.18]} />
+                    <meshStandardMaterial color="#333" />
+                </mesh>
+            </group>
+
+            {/* Left Leg */}
+            <group position={[-0.12, 0.4, 0]}>
+                <mesh ref={leftLegRef} position={[0, -0.4, 0]} castShadow>
+                    <boxGeometry args={[0.16, 0.8, 0.18]} />
+                    <meshStandardMaterial color="#333" />
+                </mesh>
+            </group>
+        </group>
+    )
 }
 
 const WeaponGlow: React.FC<{ level: number }> = ({ level }) => {
@@ -104,27 +148,61 @@ const WeaponGlow: React.FC<{ level: number }> = ({ level }) => {
     )
 }
 
-const WeaponModel: React.FC<{ subType: string, isAttacking: boolean, comboStep: number, hasAura: boolean, upgradeLevel: number }> = ({ subType, isAttacking, comboStep, hasAura, upgradeLevel }) => {
+const LevelUpVFX: React.FC = () => {
+    const { isLeveledUp, resetLevelUpFlag } = useGameStore();
     const ref = useRef<Group>(null);
-
-    useFrame((state) => {
-        if (!ref.current) return;
-        if (isAttacking) {
-             // Optional extra animation logic
+    
+    useEffect(() => {
+        if (isLeveledUp) {
+            const t = setTimeout(() => resetLevelUpFlag(), 3000); // 3s effect
+            return () => clearTimeout(t);
         }
+    }, [isLeveledUp]);
+
+    useFrame((state, delta) => {
+        if (!isLeveledUp || !ref.current) return;
+        ref.current.rotation.y += delta;
+        ref.current.scale.y = Math.min(1, ref.current.scale.y + delta * 2);
     });
 
+    if (!isLeveledUp) return null;
+
+    return (
+        <group ref={ref} position={[0, 0, 0]} scale={[1, 0, 1]}>
+            {/* Pillar of light */}
+            <Cylinder args={[1, 1, 10, 32, 1, true]} position={[0, 5, 0]}>
+                <meshBasicMaterial color="#ffd700" transparent opacity={0.3} side={THREE.DoubleSide} blending={THREE.AdditiveBlending} depthWrite={false} />
+            </Cylinder>
+            <Cylinder args={[0.5, 0.5, 10, 32, 1, true]} position={[0, 5, 0]}>
+                <meshBasicMaterial color="#fff" transparent opacity={0.5} side={THREE.DoubleSide} blending={THREE.AdditiveBlending} depthWrite={false} />
+            </Cylinder>
+            <Sparkles count={100} scale={[3, 10, 3]} size={5} speed={2} color="#ffd700" />
+            <pointLight color="#ffd700" intensity={2} distance={10} />
+        </group>
+    )
+}
+
+const DustTrails: React.FC<{ isMoving: boolean }> = ({ isMoving }) => {
+    if (!isMoving) return null;
+    return (
+        <group position={[0, 0.1, -0.5]}>
+            <Sparkles count={5} scale={[1, 0.5, 1]} size={4} speed={0.5} opacity={0.2} color="#8d6e63" />
+        </group>
+    )
+}
+
+const WeaponModel: React.FC<{ subType: string, isAttacking: boolean, comboStep: number, hasAura: boolean, upgradeLevel: number }> = ({ subType, isAttacking, comboStep, hasAura, upgradeLevel }) => {
+    const ref = useRef<Group>(null);
     const trailColor = comboStep === 3 ? "#ff4400" : "#00ffff";
 
+    // SubType rendering logic remains same but attached to hand
     if (subType === 'dagger') {
-        // Dual Daggers
         return (
             <group>
-                {/* Right Hand */}
                 <group position={[0.3, 0, 0]}>
                     <Trail width={isAttacking ? 0.6 : 0} length={3} color={trailColor} attenuation={(t) => t * t}>
                         <mesh position={[0, 0.3, 0.2]}>
-                            <boxGeometry args={[0.05, 0.6, 0.05]} />
+                            <boxGeometry args={[0.05, 0.6, 0.05, 4, 8, 4]} />
                             <meshStandardMaterial color="#e0e0e0" metalness={0.9} />
                         </mesh>
                     </Trail>
@@ -132,74 +210,6 @@ const WeaponModel: React.FC<{ subType: string, isAttacking: boolean, comboStep: 
                     <group position={[0, 0.3, 0.2]}>
                         <WeaponGlow level={upgradeLevel} />
                     </group>
-                </group>
-                {/* Left Hand */}
-                <group position={[-0.3, 0, 0]}>
-                     <Trail width={isAttacking ? 0.6 : 0} length={3} color={trailColor} attenuation={(t) => t * t}>
-                        <mesh position={[0, 0.3, 0.2]}>
-                            <boxGeometry args={[0.05, 0.6, 0.05]} />
-                            <meshStandardMaterial color="#e0e0e0" metalness={0.9} />
-                        </mesh>
-                     </Trail>
-                     <mesh position={[0, 0, 0.2]}><boxGeometry args={[0.1, 0.05, 0.1]} /><meshStandardMaterial color="#3e2723" /></mesh>
-                     <group position={[0, 0.3, 0.2]}>
-                        <WeaponGlow level={upgradeLevel} />
-                    </group>
-                </group>
-            </group>
-        )
-    }
-
-    if (subType === 'bell') {
-        return (
-             <group position={[0, 0.4, 0.2]}>
-                <mesh position={[0, 0.4, 0]}>
-                    <cylinderGeometry args={[0.02, 0.02, 1]} />
-                    <meshStandardMaterial color="#8d6e63" />
-                </mesh>
-                <mesh position={[0, 1.0, 0]}>
-                    <sphereGeometry args={[0.15]} />
-                    <meshStandardMaterial color="#ffd700" metalness={0.8} />
-                </mesh>
-                {hasAura && <pointLight color="#ff0000" intensity={0.5} distance={2} />}
-                <group position={[0, 0.8, 0]}>
-                     <WeaponGlow level={upgradeLevel} />
-                </group>
-             </group>
-        )
-    }
-    
-    if (subType === 'fan') {
-        return (
-            <group position={[0, 0.4, 0.2]}>
-                 <mesh position={[0, 0, 0]} rotation={[0,0,-0.2]}>
-                    <cylinderGeometry args={[0.02, 0.02, 0.6]} />
-                    <meshStandardMaterial color="#5d4037" />
-                </mesh>
-                <mesh position={[0.2, 0.4, 0]} rotation={[0,0,-0.2]}>
-                     <cylinderGeometry args={[0.4, 0.4, 0.01, 8, 1, true, 0, Math.PI]} />
-                     <meshStandardMaterial color="#e91e63" side={THREE.DoubleSide} />
-                </mesh>
-                <group position={[0.2, 0.4, 0]}>
-                     <WeaponGlow level={upgradeLevel} />
-                </group>
-            </group>
-        )
-    }
-
-    if (subType === 'bow') {
-        return (
-            <group position={[-0.2, 0.5, 0.3]} rotation={[0, -1.5, 1.5]}>
-                <mesh>
-                    <torusGeometry args={[0.6, 0.05, 8, 20, 3]} />
-                    <meshStandardMaterial color="#8d6e63" />
-                </mesh>
-                <mesh position={[0, 0, 0]} rotation={[0,0,1.5]}>
-                    <cylinderGeometry args={[0.01, 0.01, 1.1]} />
-                    <meshStandardMaterial color="#eee" />
-                </mesh>
-                <group position={[0, 0, 0]}>
-                     <WeaponGlow level={upgradeLevel} />
                 </group>
             </group>
         )
@@ -215,15 +225,14 @@ const WeaponModel: React.FC<{ subType: string, isAttacking: boolean, comboStep: 
                 </mesh>
              </Trail>
              <mesh position={[0, 0.6, 0]}>
-                <boxGeometry args={[0.08, 1.6, 0.02]} />
+                <boxGeometry args={[0.08, 1.6, 0.02, 4, 8, 2]} />
                 <meshStandardMaterial color="#e0e0e0" metalness={0.9} roughness={0.1} />
              </mesh>
              <mesh position={[0, -0.3, 0]}>
-                 <boxGeometry args={[0.3, 0.05, 0.1]} />
+                 <boxGeometry args={[0.3, 0.05, 0.1, 4, 2, 4]} />
                  <meshStandardMaterial color="#ffd700" />
              </mesh>
              
-             {/* Aura Effect */}
              <group visible={hasAura}>
                 <mesh position={[0, 0.6, 0]}>
                     <boxGeometry args={[0.2, 1.8, 0.2]} />
@@ -231,7 +240,6 @@ const WeaponModel: React.FC<{ subType: string, isAttacking: boolean, comboStep: 
                 </mesh>
              </group>
 
-             {/* Upgrade Glow */}
              <group position={[0, 0.6, 0]}>
                  <WeaponGlow level={upgradeLevel} />
              </group>
@@ -253,9 +261,7 @@ export const Player: React.FC = () => {
       setNpcDialogue, 
       setPlayerPosition, 
       pickupAllNearby, 
-      usePotion,
       getDerivedStats,
-      setTarget,
       activateSkill,
       activeBuffs,
       playerClass,
@@ -278,9 +284,10 @@ export const Player: React.FC = () => {
   const weaponType = equipment.weapon?.subType || 'sword';
   const weaponLevel = equipment.weapon?.upgradeLevel || 0;
 
+  // Input Handlers
   useEffect(() => {
     const unsubs = [
-        inputSystem.onAction('ATTACK_BASIC', () => startAttack()),
+        // Note: Continuous attack is now handled in useFrame
         inputSystem.onAction('INTERACT_OR_PICKUP', () => {
              handleInteract();
              pickupAllNearby();
@@ -295,7 +302,7 @@ export const Player: React.FC = () => {
     return () => {
         unsubs.forEach(u => u());
     };
-  }, [isAttacking, enemies, comboStep]);
+  }, [enemies]);
 
   const handleInteract = () => {
     if (!playerRef.current) return;
@@ -313,11 +320,16 @@ export const Player: React.FC = () => {
 
   const startAttack = () => {
       const now = Date.now();
+      // If already attacking, do nothing until finished
       if (isAttacking) return;
+      
+      // Combo logic reset
       if (now - lastAttackEndTime.current > 1200) setComboStep(0);
+      
       setIsAttacking(true);
       attackTimer.current = 0;
       hitEnemies.current.clear();
+      
       if (playerRef.current) {
           const forward = new Vector3(0, 0, 1).applyQuaternion(playerRef.current.quaternion);
           playerRef.current.position.addScaledVector(forward, 0.4);
@@ -330,7 +342,12 @@ export const Player: React.FC = () => {
     const stats = getDerivedStats();
     const attackSpeed = stats.attackSpeed || 1.0;
 
-    // --- COMBAT LOOP ---
+    // Continuous Attack Input Check
+    if (inputSystem.isActionActive('ATTACK_BASIC')) {
+        startAttack();
+    }
+
+    // Attack Logic
     if (isAttacking) {
         attackTimer.current += delta * attackSpeed;
         const profile = COMBO_PROFILES[comboStep];
@@ -359,9 +376,8 @@ export const Player: React.FC = () => {
         }
     }
 
-    // --- MOVEMENT ---
+    // Movement Logic
     const moveSpeed = stats.speed * delta; 
-    
     const w = inputSystem.isActionActive('MOVE_FORWARD');
     const s = inputSystem.isActionActive('MOVE_BACKWARD');
     const a = inputSystem.isActionActive('MOVE_LEFT');
@@ -412,47 +428,34 @@ export const Player: React.FC = () => {
     }
     setIsMoving(_isMoving);
 
-    // Animation logic for fallback model
-    if (bodyMeshRef.current && playerClass !== 'warrior') {
-        if (_isMoving) {
-            bodyMeshRef.current.position.y = Math.sin(state.clock.elapsedTime * 15) * 0.05;
-            bodyMeshRef.current.rotation.x = 0.1;
-        } else {
-            bodyMeshRef.current.position.y = THREE.MathUtils.lerp(bodyMeshRef.current.position.y, 0, delta * 5);
-            bodyMeshRef.current.rotation.x = THREE.MathUtils.lerp(bodyMeshRef.current.rotation.x, 0, delta * 5);
-        }
-    }
-
     if (controlsRef.current) {
       controlsRef.current.target.copy(playerRef.current.position);
       controlsRef.current.target.y = 1.5; 
       controlsRef.current.update();
     }
     
-    // Weapon Animation
+    // Weapon Animation / Attachment
     if (weaponRef.current) {
         if (isAttacking) {
             const t = attackTimer.current * 8;
-            if (weaponType === 'dagger') {
-                weaponRef.current.position.z = 0.5 + Math.sin(t * 2) * 0.5;
-            } else if (comboStep === 0) {
+            if (comboStep === 0) {
                 weaponRef.current.rotation.set(1.5 + Math.sin(t)*1.5, -Math.sin(t)*1.0, -0.5);
-                weaponRef.current.position.set(0.5 - Math.sin(t)*0.5, 1, 0.5 + Math.sin(t)*0.5);
+                weaponRef.current.position.set(0.6 - Math.sin(t)*0.5, 1, 0.5 + Math.sin(t)*0.5);
             } else if (comboStep === 1) {
                 weaponRef.current.rotation.set(1.5, 1.5 - Math.sin(t)*2.5, -Math.PI/2);
-                weaponRef.current.position.set(0.5, 1, 0.5 + Math.sin(t));
+                weaponRef.current.position.set(0.6, 1, 0.5 + Math.sin(t));
             } else if (comboStep === 2) {
                 weaponRef.current.rotation.set(1.5 + Math.sin(t)*2.0, 0, 0);
-                weaponRef.current.position.set(0.5, 1 + Math.sin(t), 0.5 + Math.sin(t));
+                weaponRef.current.position.set(0.6, 1 + Math.sin(t), 0.5 + Math.sin(t));
             } else {
                 weaponRef.current.rotation.set(Math.PI/2, 0, 0);
-                weaponRef.current.position.set(0.5, 1, 0.5 + Math.sin(t)*1.5);
+                weaponRef.current.position.set(0.6, 1, 0.5 + Math.sin(t)*1.5);
             }
         } else {
+             // Idle hold in right hand
             const breath = Math.sin(state.clock.elapsedTime * 2) * 0.05;
-            weaponRef.current.rotation.set(1.5 + breath, 0, 0);
-            weaponRef.current.position.set(0.5, 1 + breath, 0.5);
-            weaponRef.current.rotation.z = 0;
+            weaponRef.current.position.set(0.55, 0.8 + breath, 0.3); // Adjusted for Humanoid
+            weaponRef.current.rotation.set(1.8, 0, 0); 
         }
     }
   });
@@ -470,46 +473,29 @@ export const Player: React.FC = () => {
           mouseButtons={{ LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.ROTATE }}
       />
       
-      <group ref={playerRef} position={[0, 1, 0]}>
-        <group ref={bodyMeshRef}>
-          
-          {/* RENDER WARRIOR MODEL IF SELECTED, ELSE FALLBACK CAPSULE */}
-          {playerClass === 'warrior' ? (
-             <ModelErrorBoundary fallback={
-                <Capsule args={[0.4, 1.2]} position={[0, 0.6, 0]} castShadow>
-                   <meshStandardMaterial color={modelColor} />
-                </Capsule>
-             }>
-                 <Suspense fallback={
-                    <Capsule args={[0.4, 1.2]} position={[0, 0.6, 0]}><meshStandardMaterial color="gray" wireframe /></Capsule>
-                 }>
-                     <WarriorModel3D isMoving={isMoving} isAttacking={isAttacking} />
-                 </Suspense>
-             </ModelErrorBoundary>
-          ) : (
-             <Capsule args={[0.4, 1.2]} position={[0, 0.6, 0]} castShadow>
-                <meshStandardMaterial color={modelColor} />
-             </Capsule>
-          )}
-          
-          {/* Weapon Group */}
-          <group ref={weaponRef} position={[0.5, 1, 0.5]} rotation={[1.5, 0, 0]}>
-             <WeaponModel subType={weaponType} isAttacking={isAttacking} comboStep={comboStep} hasAura={hasAura} upgradeLevel={weaponLevel} />
-          </group>
+      <group ref={playerRef} position={[0, 0, 0]}>
+        {/* Level Up VFX Container */}
+        <LevelUpVFX />
+        <DustTrails isMoving={isMoving} />
 
-          <mesh position={[0, 2.2, 0]}>
-              <Html center zIndexRange={[100, 0]}>
-                  <div className="flex flex-col items-center pointer-events-none select-none">
-                    <div className="text-yellow-400 font-bold text-xs drop-shadow-md font-serif whitespace-nowrap">
-                        Lv. {playerLevel} {playerName}
-                    </div>
-                    <div className="text-gray-400 text-[8px] font-serif uppercase tracking-widest">
-                        {playerClass}
-                    </div>
-                  </div>
-              </Html>
-          </mesh>
+        <HumanoidBody color={modelColor} isMoving={isMoving} isAttacking={isAttacking} />
+          
+        <group ref={weaponRef} position={[0.5, 1, 0.5]} rotation={[1.5, 0, 0]}>
+             <WeaponModel subType={weaponType} isAttacking={isAttacking} comboStep={comboStep} hasAura={hasAura} upgradeLevel={weaponLevel} />
         </group>
+
+        <mesh position={[0, 2.2, 0]}>
+            <Html center zIndexRange={[100, 0]}>
+                <div className="flex flex-col items-center pointer-events-none select-none">
+                <div className="text-yellow-400 font-bold text-xs drop-shadow-md font-serif whitespace-nowrap">
+                    Lv. {playerLevel} {playerName}
+                </div>
+                <div className="text-gray-400 text-[8px] font-serif uppercase tracking-widest">
+                    {playerClass}
+                </div>
+                </div>
+            </Html>
+        </mesh>
       </group>
     </>
   );

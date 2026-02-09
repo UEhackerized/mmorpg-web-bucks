@@ -10,10 +10,10 @@ export interface AttackProfile {
 }
 
 export const COMBO_PROFILES: AttackProfile[] = [
-    { duration: 0.5, hitStart: 0.15, hitEnd: 0.35, range: 3.5, angle: Math.PI / 2 }, // Slash Right
-    { duration: 0.5, hitStart: 0.15, hitEnd: 0.35, range: 3.5, angle: Math.PI / 2 }, // Slash Left
-    { duration: 0.6, hitStart: 0.2, hitEnd: 0.4, range: 3.5, angle: Math.PI / 3 },   // Vertical Smash
-    { duration: 0.8, hitStart: 0.25, hitEnd: 0.5, range: 4.0, angle: Math.PI / 4 },  // Thrust (Finisher)
+    { duration: 0.5, hitStart: 0.15, hitEnd: 0.35, range: 5.5, angle: Math.PI / 1.5 }, // Slash Right (Wide)
+    { duration: 0.5, hitStart: 0.15, hitEnd: 0.35, range: 5.5, angle: Math.PI / 1.5 }, // Slash Left (Wide)
+    { duration: 0.6, hitStart: 0.2, hitEnd: 0.4, range: 6.0, angle: Math.PI / 1.8 },   // Vertical Smash
+    { duration: 0.8, hitStart: 0.25, hitEnd: 0.5, range: 6.5, angle: Math.PI / 2 },  // Thrust (Finisher)
 ];
 
 export const checkSectorHit = (
@@ -28,7 +28,7 @@ export const checkSectorHit = (
     const dist = toEnemy.length();
     
     if (dist > range) return false;
-    if (dist < 0.5) return true; // Point blank is always a hit
+    if (dist < 1.0) return true; // Increased point blank range for ease
     
     const toEnemyNorm = toEnemy.normalize();
     const dot = playerForward.dot(toEnemyNorm);

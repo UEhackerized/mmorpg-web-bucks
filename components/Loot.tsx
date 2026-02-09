@@ -15,7 +15,6 @@ const LootItem: React.FC<{ drop: any }> = ({ drop }) => {
     useFrame((state) => {
         if (!ref.current) return;
 
-        // Culling logic
         const cameraPos = state.camera.position;
         const pos = ref.current.position;
         const distSq = (cameraPos.x - pos.x)**2 + (cameraPos.z - pos.z)**2;
@@ -47,9 +46,11 @@ const LootItem: React.FC<{ drop: any }> = ({ drop }) => {
         >
             <mesh castShadow>
                 {isGold ? (
-                    <cylinderGeometry args={[0.2, 0.2, 0.05, 16]} />
+                    // High Poly Cylinder for Coins
+                    <cylinderGeometry args={[0.2, 0.2, 0.05, 32]} />
                 ) : (
-                    <boxGeometry args={[0.3, 0.3, 0.3]} />
+                    // High Poly Box for Item Box
+                    <boxGeometry args={[0.3, 0.3, 0.3, 4, 4, 4]} />
                 )}
                 <meshStandardMaterial 
                     color={color} 
@@ -59,7 +60,7 @@ const LootItem: React.FC<{ drop: any }> = ({ drop }) => {
                     roughness={0.2} 
                 />
             </mesh>
-            {/* Light pillar for rare items? */}
+            
             {!isGold && drop.item?.rarity !== 'normal' && visible && (
                  <pointLight color={color} intensity={1} distance={3} />
             )}

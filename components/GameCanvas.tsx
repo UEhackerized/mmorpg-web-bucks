@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Sky, Stars, Environment } from '@react-three/drei';
@@ -22,10 +23,8 @@ const DayNightCycle: React.FC = () => {
     const ambientRef = useRef<THREE.AmbientLight>(null);
     
     useFrame(() => {
-        // Calculate Sun Position based on Time
         const angle = ((gameTime - 6) / 24) * Math.PI * 2;
-        
-        const radius = 500; // Increased radius for larger map
+        const radius = 500; 
         const sunX = Math.cos(angle) * radius;
         const sunY = Math.sin(angle) * radius;
         const sunZ = 100; 
@@ -53,13 +52,11 @@ const DayNightCycle: React.FC = () => {
             ambientRef.current.intensity = 0.2 + (t * 0.6);
         }
         
-        // Fog control - INCREASED DISTANCE for larger map
         if (scene.fog instanceof THREE.Fog) {
              const t = (Math.sin(angle) + 1) / 2;
              const dayFog = new THREE.Color('#d1e2e8');
              const nightFog = new THREE.Color('#050510');
              scene.fog.color.lerpColors(nightFog, dayFog, t);
-             // Start at 20, End at 250 (Much further visibility)
              scene.fog.near = 20;
              scene.fog.far = 250 + (t * 150); 
         }
@@ -70,7 +67,7 @@ const DayNightCycle: React.FC = () => {
             <directionalLight 
                 ref={sunRef}
                 castShadow 
-                shadow-mapSize={[4096, 4096]} // Higher res shadows for bigger map
+                shadow-mapSize={[2048, 2048]} // Optimized from 4096
                 shadow-camera-left={-200}
                 shadow-camera-right={200}
                 shadow-camera-top={200}
@@ -97,8 +94,7 @@ export const GameCanvas: React.FC = () => {
 
   return (
     <div className="w-full h-full bg-gray-900">
-      <Canvas shadows camera={{ position: [0, 12, 12], fov: 50, far: 1000 }} gl={{ antialias: true }}>
-        {/* Increased fog distance */}
+      <Canvas shadows camera={{ position: [0, 12, 12], fov: 50, far: 1000 }} gl={{ antialias: true, powerPreference: "high-performance" }}>
         <fog attach="fog" args={['#d1e2e8', 30, 300]} />
         
         <DayNightCycle />
@@ -106,7 +102,7 @@ export const GameCanvas: React.FC = () => {
         <Sky sunPosition={sunPos} turbidity={0.5} rayleigh={gameTime > 6 && gameTime < 18 ? 0.5 : 0.1} distance={1000} />
         
         {(gameTime < 6 || gameTime > 18) && (
-            <Stars radius={300} depth={100} count={10000} factor={6} saturation={0} fade speed={1} />
+            <Stars radius={300} depth={100} count={5000} factor={6} saturation={0} fade speed={1} />
         )}
         
         <Environment preset="city" environmentIntensity={gameTime > 6 && gameTime < 18 ? 0.5 : 0.1} />

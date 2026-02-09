@@ -25,6 +25,8 @@ interface GameStore {
   playerName: string;
   playerClass: CharacterClass;
   setPlayerIdentity: (name: string, cls: CharacterClass) => void;
+  isLeveledUp: boolean;
+  resetLevelUpFlag: () => void;
 
   playerPosition: [number, number, number];
   playerRotation: number; // Y rotation
@@ -145,6 +147,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   playerName: 'Player',
   playerClass: 'warrior',
   setPlayerIdentity: (name, cls) => set({ playerName: name, playerClass: cls }),
+  isLeveledUp: false,
+  resetLevelUpFlag: () => set({ isLeveledUp: false }),
 
   playerPosition: [0, 0, 0],
   playerRotation: 0,
@@ -781,7 +785,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       
       // Crit
       const isCrit = Math.random() < derived.critChance;
-      if (isCrit) finalDamage *= 1.5;
+      if (isCrit) finalDamage *= 2.0; // Crit is x2 in typical MMORPGs
       
       finalDamage = Math.floor(finalDamage * (0.95 + Math.random() * 0.1));
       
@@ -828,7 +832,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
       state.updateEnemy(id, { 
           hp: newHp, 
-          isDead, 
+          isDead,
+          deadTime: isDead ? Date.now() : undefined, // Track death time for respawn
           lastHitTime: Date.now(), 
           position: newPos, 
           isAggroed: true, 
@@ -836,7 +841,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
           ...updatedMetinData
       });
       
-      state.addFloatingText({ position: [newPos[0], 2, newPos[2]], text: finalDamage.toString(), color: isCrit ? '#ffff00' : '#ffffff', scale: isCrit ? 1.5 : 1 });
+      // Visual Feedback
+      state.addFloatingText({ 
+        position: [newPos[0], 2, newPos[2]], 
+        text: finalDamage.toString(), 
+        color: isCrit ? '#ffd700' : '#ffffff', 
+        scale: isCrit ? 2.0 : 1,
+        isCritical: isCrit 
+      });
 
       // DEATH & LOOT
       if (isDead) {
@@ -903,12 +915,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const state = get();
       state.drops.forEach(d => {
           const dist = Math.sqrt((d.position[0]-state.playerPosition[0])**2 + (d.position[2]-state.playerPosition[2])**2);
-          if (dist < 3) state.pickupDrop(d.id);
+          if (dist < 5) state.pickupDrop(d.id); // Increased range
       });
       // Priority: Drops -> then NPCs
       const drops = state.drops.filter(d => {
          const dist = Math.sqrt((d.position[0]-state.playerPosition[0])**2 + (d.position[2]-state.playerPosition[2])**2);
-         return dist < 3;
+         return dist < 5;
       });
 
       if (drops.length === 0) {
@@ -927,7 +939,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   addFloatingText: (t) => {
       const id = Math.random().toString();
       set(s => ({ floatingTexts: [...s.floatingTexts, { ...t, id, timestamp: Date.now() }] }));
-      setTimeout(() => get().removeFloatingText(id), 800);
+      setTimeout(() => get().removeFloatingText(id), 1000); // Longer float
   },
   removeFloatingText: (id) => set(s => ({ floatingTexts: s.floatingTexts.filter(t => t.id !== id) })),
 
@@ -966,7 +978,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
           }
       }
 
-      return { playerXp: xp, playerLevel: lvl, statPoints: sp, skills: { ...s.skills, skillPoints: skillP } };
+      // Return new state, setting isLeveledUp to true if level changed, to trigger VFX
+      return { 
+          playerXp: xp, 
+          playerLevel: lvl, 
+          statPoints: sp, 
+          skills: { ...s.skills, skillPoints: skillP },
+          isLeveledUp: leveledUp || s.isLeveledUp 
+      };
   }),
   
   saveGame: () => {
@@ -1053,11 +1072,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const newLearned = state.skills.learned.map(s => ({ ...s, currentCooldown: Math.max(0, s.currentCooldown - delta) }));
       const newBuffs = state.activeBuffs.map(b => ({ ...b, remainingDuration: b.remainingDuration - delta })).filter(b => b.remainingDuration > 0);
       
+      // NATURAL REGENERATION
       let newMp = state.playerMp;
-      if (state.playerMp < state.playerMaxMp) newMp = Math.min(state.playerMaxMp, state.playerMp + (5 * delta));
+      let newHp = state.playerHp;
       
-      if (state.skills.learned !== newLearned || state.activeBuffs !== newBuffs) {
-          set({ skills: { ...state.skills, learned: newLearned }, activeBuffs: newBuffs, playerMp: newMp });
+      // Regen MP
+      if (state.playerMp < state.playerMaxMp) newMp = Math.min(state.playerMaxMp, state.playerMp + (10 * delta));
+      // Regen HP (slower)
+      if (state.playerHp < state.playerMaxHp && !state.targetId) newHp = Math.min(state.playerMaxHp, state.playerHp + (5 * delta));
+
+      if (state.skills.learned !== newLearned || state.activeBuffs !== newBuffs || newMp !== state.playerMp || newHp !== state.playerHp) {
+          set({ skills: { ...state.skills, learned: newLearned }, activeBuffs: newBuffs, playerMp: newMp, playerHp: newHp });
       }
       
       // Loot Despawn
@@ -1071,6 +1096,20 @@ export const useGameStore = create<GameStore>((set, get) => ({
       let damageToTake = 0;
       
       const newEnemies = state.enemies.map(e => {
+          // RESPAWN LOGIC
+          if (e.isDead && e.type === 'enemy' && e.deadTime && (now - e.deadTime > 10000)) {
+               // Respawn after 10 seconds
+               return {
+                   ...e,
+                   isDead: false,
+                   hp: e.maxHp,
+                   state: 'idle',
+                   isAggroed: false,
+                   position: e.spawnOrigin,
+                   deadTime: undefined
+               } as Entity;
+          }
+
           if (e.isDead || e.type === 'npc') return e; // Skip NPCs in AI loop
           if (e.type === 'metin' && e.configId) return e; // Metins don't move
 
@@ -1085,7 +1124,5 @@ export const useGameStore = create<GameStore>((set, get) => ({
       
       if (damageToTake > 0) get().takeDamage(damageToTake);
       set({ enemies: newEnemies });
-      
-      // Auto Save periodically? For now we rely on events.
   }
 }));

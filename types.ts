@@ -85,6 +85,7 @@ export interface Entity {
 
   // Status
   isDead: boolean;
+  deadTime?: number; // Timestamp when died, for respawn
   lastHitTime?: number;
   
   // Legacy/Visuals (to be phased out or kept for overrides)
