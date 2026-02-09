@@ -5,14 +5,17 @@
 ![Open Source](https://img.shields.io/badge/Open_Source-❤️-red)
 
 **Metin2 Web Legacy**, efsanevi MMORPG deneyimini modern web teknolojileriyle tarayıcıya taşıyan, yüksek performanslı bir 3D klon projesidir. **React**, **Three.js (Fiber/Drei)** ve **Zustand** kullanılarak sıfırdan inşa edilmiştir.
+<img width="1295" height="744" alt="metin2nick" src="https://github.com/user-attachments/assets/7360030f-8c9d-46f9-8e95-b44f31cd0738" />
 
 ---
+
 
 ## 🎯 Projenin Amacı (Vision)
 
 Bu projenin temel amacı, nostaljik MMORPG mekaniklerini modern tarayıcı standartlarına (WebGl/WebGPU) entegre ederek, **tamamen açık kaynaklı, modüler ve topluluk tarafından geliştirilebilir bir MMORPG altyapısı** oluşturmaktır. Sadece bir oyun değil; aynı zamanda karmaşık oyun mantığının, AI entegrasyonunun ve 3D grafik optimizasyonlarının web ortamında nasıl yönetilebileceğini gösteren bir "Living Sandbox" (Yaşayan Kum Havuzu) olmayı hedeflemektedir.
 
 ---
+<img width="1408" height="756" alt="game" src="https://github.com/user-attachments/assets/214d141d-0dcc-41b5-bbc9-927c5c341b83" />
 
 ## 🤝 Birlikte Geliştirelim! (Contribution)
 
@@ -27,6 +30,7 @@ Bu projenin temel amacı, nostaljik MMORPG mekaniklerini modern tarayıcı stand
 Her türlü "Pull Request" ve öneriye açığız. Gelin, bu efsaneyi modern web dünyasında beraber yaşatalım!
 
 ---
+<img width="1415" height="756" alt="m2m22" src="https://github.com/user-attachments/assets/6b0d8578-2a30-47e7-aeb8-d378e8e7c2bd" />
 
 ## 🎮 Temel Özellikler
 
