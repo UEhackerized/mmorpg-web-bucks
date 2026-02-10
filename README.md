@@ -4,79 +4,106 @@
 ![Tech Stack](https://img.shields.io/badge/Tech-React_%7C_Three.js_%7C_Zustand-blue)
 ![Open Source](https://img.shields.io/badge/Open_Source-❤️-red)
 
-**Metin2 Web Legacy**, efsanevi MMORPG deneyimini modern web teknolojileriyle tarayıcıya taşıyan, yüksek performanslı bir 3D klon projesidir. **React**, **Three.js (Fiber/Drei)** ve **Zustand** kullanılarak sıfırdan inşa edilmiştir.
-<img width="1295" height="744" alt="metin2nick" src="https://github.com/user-attachments/assets/7360030f-8c9d-46f9-8e95-b44f31cd0738" />
+---
+
+## 🌍 Language / Dil / Sprache / Idioma / Langue
+- [English](#english)
+- [Türkçe](#türkçe)
+- [Deutsch](#deutsch)
+- [Español](#español)
+- [Français](#français)
 
 ---
 
+<a name="english"></a>
+## 🇬🇧 English
 
-## 🎯 Projenin Amacı (Vision)
+**Metin2 Web Legacy** is a high-performance 3D clone project that brings the legendary MMORPG experience to the browser using modern web technologies. Built from scratch with **React**, **Three.js (Fiber/Drei)**, and **Zustand**.
 
-Bu projenin temel amacı, nostaljik MMORPG mekaniklerini modern tarayıcı standartlarına (WebGl/WebGPU) entegre ederek, **tamamen açık kaynaklı, modüler ve topluluk tarafından geliştirilebilir bir MMORPG altyapısı** oluşturmaktır. Sadece bir oyun değil; aynı zamanda karmaşık oyun mantığının, AI entegrasyonunun ve 3D grafik optimizasyonlarının web ortamında nasıl yönetilebileceğini gösteren bir "Living Sandbox" (Yaşayan Kum Havuzu) olmayı hedeflemektedir.
+### 🎯 Our Vision
+The goal of this project is to integrate nostalgic MMORPG mechanics with modern browser standards, creating an **entirely open-source, modular, and community-driven MMORPG framework**.
 
----
-<img width="1408" height="756" alt="game" src="https://github.com/user-attachments/assets/214d141d-0dcc-41b5-bbc9-927c5c341b83" />
+### 🤝 Join the Development!
+This project belongs to everyone who loves this classic. I need your help to take it further! Please help me develop if you have experience in:
+- **Frontend/Backend development**, **3D Art**, **Game Design**, or **AI Integration**.
 
-## 🤝 Birlikte Geliştirelim! (Contribution)
-
-**Bu proje tek bir kişinin değil, bu klasiğe gönül veren herkesin projesidir.** Projeyi daha ileriye taşımak için sizin desteğinize ihtiyacım var! Eğer aşağıdaki konularda deneyimliyseniz veya öğrenmek istiyorsanız lütfen geliştirmeme yardımcı olun:
-
--   **Frontend:** React ve Three.js optimizasyonları, UI/UX iyileştirmeleri.
--   **Backend:** Socket.io veya WebRTC ile çok oyunculu (Multiplayer) sistemlerin kurulması.
--   **3D Sanat:** Low-poly modeller, animasyonlar ve efektler (VFX).
--   **Oyun Tasarımı:** Yeni görevler, karakter sınıfları ve dengelemeler (Balancing).
--   **AI:** Gemini API entegrasyonu ile daha zeki ve etkileşimli NPC sistemleri.
-
-Her türlü "Pull Request" ve öneriye açığız. Gelin, bu efsaneyi modern web dünyasında beraber yaşatalım!
-
----
-<img width="1415" height="756" alt="m2m22" src="https://github.com/user-attachments/assets/6b0d8578-2a30-47e7-aeb8-d378e8e7c2bd" />
-
-## 🎮 Temel Özellikler
-
-- **Klasik Mekanikler:** Orijinal Metin2 hissiyatını veren WASD hareket sistemi ve sağ tık kontrollü kamera açısı.
-- **Dinamik Savaş Sistemi:** 4 aşamalı kombo sistemi ve Alan Etkili (AoE) yetenekler.
-- **RPG Sistemleri:** Level, Stat (STR, VIT...), Envanter, Ekipman ve Demirci (Upgrade) sistemi.
-- **Metin Taşları:** Haritaya düşen, canavar dalgaları çağıran dinamik objeler.
-- **AI Destekli NPC'ler:** Google Gemini API ile gardiyan ve köylülerle doğal dilde sohbet.
-- **Performans:** GPU Instancing ve Culling teknikleri ile binlerce objenin akıcı render edilmesi.
+### ⌨️ Controls
+- **WASD:** Move | **Space:** Attack | **1-4:** Skills | **Right Click:** Rotate Camera | **I/C/K/M:** Panels | **F/Z:** Loot/Interact
 
 ---
 
-## 🚀 Teknik Detaylar
+<a name="türkçe"></a>
+## 🇹🇷 Türkçe
 
-Web tabanlı 3D oyunlardaki darboğazları aşmak için:
-1.  **GPU Instancing:** Tek bir çizim çağrısı ile binlerce ağaç/çimen çizimi.
-2.  **Zustand State Management:** Oyun mantığını React döngüsünden ayırarak yüksek hızda yönetim.
-3.  **Shared Geometries:** Bellek verimliliği için ortak model kullanımı.
+**Metin2 Web Legacy**, efsanevi MMORPG deneyimini modern web teknolojileriyle tarayıcıya taşıyan, yüksek performanslı bir 3D klon projesidir. **React**, **Three.js** ve **Zustand** kullanılarak sıfırdan inşa edilmiştir.
 
----
+### 🎯 Amacımız
+Bu projenin temel amacı, nostaljik MMORPG mekaniklerini modern tarayıcı standartlarına entegre ederek, **tamamen açık kaynaklı ve topluluk tarafından geliştirilebilir bir MMORPG altyapısı** oluşturmaktır.
 
-## 🛠️ Kurulum
+### 🤝 Beraber Geliştirelim!
+Bu proje bu klasiğe gönül veren herkesin projesidir. Lütfen geliştirmeme yardımcı olun! Şu konularda desteğinize ihtiyacım var:
+- **Frontend/Backend**, **3D Tasarım**, **Oyun Dengesi** veya **Yapay Zeka**.
 
-1.  Repoyu klonlayın: `git clone https://github.com/kullaniciadi/metin2-web-legacy.git`
-2.  Bağımlılıkları yükleyin: `npm install`
-3.  `.env` dosyasına Gemini API anahtarınızı ekleyin: `API_KEY=your_key`
-4.  Başlatın: `npm run dev`
-
----
-
-## ⌨️ Kontroller
-
-| Tuş | İşlem |
-| :--- | :--- |
-| **W, A, S, D** | Hareket Et |
-| **Space** | Saldırı (Basılı tutulabilir) |
-| **1 - 4** | Yetenek Kullanımı |
-| **Mouse Sağ Tık** | Kamera Döndürme |
-| **I / C / K / M** | Envanter / Karakter / Beceri / Harita |
-| **F / Z** | Toplama / Etkileşim |
-| **ESC** | Sistem Menüsü |
+### ⌨️ Kontroller
+- **WASD:** Hareket | **Space:** Saldırı | **1-4:** Beceri | **Sağ Tık:** Kamera | **I/C/K/M:** Paneller | **F/Z:** Topla/Etkileşim
 
 ---
 
-## 📜 Lisans
+<a name="deutsch"></a>
+## 🇩🇪 Deutsch
 
-Bu proje eğitim ve topluluk amaçlı bir klon çalışmasıdır.
+**Metin2 Web Legacy** ist ein leistungsstarkes 3D-Klonprojekt, das das legendäre MMORPG-Erlebnis mit modernen Webtechnologien in den Browser bringt. Entwickelt mit **React**, **Three.js** und **Zustand**.
 
-⭐ **Bu yolculukta bana katılmak için projeyi yıldızlayabilir ve "Issue" üzerinden iletişime geçebilirsiniz!**
+### 🎯 Unsere Vision
+Das Ziel dieses Projekts ist es, nostalgische MMORPG-Mechaniken in moderne Browserstandards zu integrieren und ein **vollständig quelloffenes MMORPG-Framework** zu schaffen.
+
+### 🤝 Machen Sie mit!
+Dieses Projekt gehört jedem, der diesen Klassiker liebt. Helfen Sie mir bitte bei der Entwicklung in den Bereichen:
+- **Programmierung**, **3D-Grafik**, **Game Design** oder **KI-Integration**.
+
+### ⌨️ Steuerung
+- **WASD:** Bewegen | **Leertaste:** Angriff | **1-4:** Fertigkeiten | **Rechtsklick:** Kamera | **I/C/K/M:** Menüs | **F/Z:** Aufheben
+
+---
+
+<a name="español"></a>
+## 	Es Español
+
+**Metin2 Web Legacy** es un proyecto de clonación 3D de alto rendimiento que lleva la legendaria experiencia MMORPG al navegador. Construido desde cero con **React**, **Three.js** y **Zustand**.
+
+### 🎯 Nuestra Visión
+El objetivo es integrar mecánicas nostálgicas con estándares web modernos, creando un **framework MMORPG modular y de código abierto**.
+
+### 🤝 ¡Únete al Desarrollo!
+Este proyecto es de todos los que aman este clásico. ¡Por favor, ayúdame a desarrollarlo si tienes experiencia en:
+- **Desarrollo Web**, **Arte 3D**, **Diseño de Juego** o **IA**.
+
+### ⌨️ Controles
+- **WASD:** Mover | **Espacio:** Atacar | **1-4:** Habilidades | **Click Derecho:** Cámara | **I/C/K/M:** Paneles | **F/Z:** Recoger
+
+---
+
+<a name="français"></a>
+## 🇫🇷 Français
+
+**Metin2 Web Legacy** est un projet de clone 3D haute performance apportant l'expérience légendaire du MMORPG sur navigateur. Développé avec **React**, **Three.js** et **Zustand**.
+
+### 🎯 Notre Vision
+L'objectif est d'intégrer des mécaniques nostalgiques aux standards web modernes, créant un **framework MMORPG entièrement open-source**.
+
+### 🤝 Rejoignez l'aventure !
+Ce projet appartient à tous les passionnés. Aidez-moi à le développer si vous avez des compétences en :
+- **Développement Web**, **Art 3D**, **Game Design** ou **IA**.
+
+### ⌨️ Commandes
+- **WASD:** Déplacement | **Espace:** Attaquer | **1-4:** Compétences | **Clic Droit:** Caméra | **I/C/K/M:** Panneaux | **F/Z:** Ramasser
+
+---
+
+## 🛠️ Technical Setup / Kurulum
+1. `git clone https://github.com/yourusername/metin2-web-legacy.git`
+2. `npm install`
+3. Add `API_KEY=your_key` to `.env`
+4. `npm run dev`
+
+⭐ **Please star the project to support us! / Destek için lütfen yıldız verin!**

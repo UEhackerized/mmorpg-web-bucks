@@ -351,6 +351,8 @@ export type InputAction =
   | 'MOVE_RIGHT'
   | 'CAMERA_ROTATE_LEFT'  // Q
   | 'CAMERA_ROTATE_RIGHT' // E
+  | 'CAMERA_ZOOM_IN'      // R
+  | 'CAMERA_ZOOM_OUT'     // F
   | 'ATTACK_BASIC'
   | 'USE_QUICKSLOT_1'
   | 'USE_QUICKSLOT_2'
