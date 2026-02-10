@@ -14,6 +14,14 @@
 - [Français](#français)
 
 ---
+NEW UPDATE picture
+<img width="1372" height="738" alt="updates" src="https://github.com/user-attachments/assets/306684c9-00aa-4089-9d57-a4f7d54cb523" />
+
+old picture
+<img width="1408" height="756" alt="game" src="https://github.com/user-attachments/assets/613f7373-e4b2-4f90-9ec6-a04c572f0e3b" />
+
+<img width="1415" height="756" alt="m2m22" src="https://github.com/user-attachments/assets/de922df6-454c-4110-b40d-d5a6889d16b9" />
+<img width="1295" height="744" alt="metin2nick" src="https://github.com/user-attachments/assets/3da2a88c-da17-4ded-b73c-3a3301e74980" />
 
 <a name="english"></a>
 ## 🇬🇧 English
